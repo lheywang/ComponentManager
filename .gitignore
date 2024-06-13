@@ -1,0 +1,5 @@
+# Ignoring databases files
+*.db*
+
+# Ignoring python cache files
+*.pyc*
