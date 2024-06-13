@@ -9,7 +9,8 @@ def main():
     print("Hello Worlds !")
 
     DB = DataBase()
-    del DB
+    DB.PrintDB()
+    DB.SaveAndClose()
 
 
 if __name__ == "__main__":
