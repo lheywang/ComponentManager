@@ -38,6 +38,9 @@ class DataBase:
             type text,
             value text,
             quantity int,
+            manufacturer text,
+            datasheet text,
+            seller text,
             FOREIGN KEY (family) REFERENCES ReferencesList (reference)
             UNIQUE (partname, package, type)
         );
@@ -108,7 +111,7 @@ class DataBase:
 
         try:
             self.__db__.execute(
-                f"INSERT INTO Components (family, partname, package, type, value, quantity) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', {Quantity})"
+                f"INSERT INTO Components (family, partname, package, type, value, quantity) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', {Quantity})"  # Add here the new fileds !
             )
 
         except Exception as e:
