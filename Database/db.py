@@ -114,3 +114,28 @@ class DataBase:
         finally:
             self.__db__.commit()
             return retval, reason
+
+    def SeekOnDB(self, **kwargs):
+        """
+        Return a list of the element that match the criteria passed.
+        """
+
+        condition = "WHERE "
+
+        arg_number = len(kwargs)
+        actual_arg = 0
+
+        for col, values in kwargs.items():
+            condition = condition + f"""{col} = '{values}'"""
+
+            if actual_arg < arg_number - 1:
+                condition = condition + " AND "
+
+            actual_arg += 1
+
+        command = f"""SELECT * FROM Components {condition}"""
+
+        ret = self.__db__.execute(command)
+        ret = ret.fetchall()
+
+        return ret
