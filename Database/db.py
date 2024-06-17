@@ -22,14 +22,8 @@ class DataBase:
 
         # Statements to create tables for the the database.
         # Include a IF NOT EXISTS to not overwrite any data.
-        create_table1 = f"""
-        CREATE TABLE IF NOT EXISTS ComponentsReferences(
-            id INTEGER PRIMARY KEY,
-            reference text
-        );
-        """
 
-        create_table2 = f"""
+        create_table = f"""
         CREATE TABLE IF NOT EXISTS Components(
             id INTEGER PRIMARY KEY,
             family text,
@@ -41,14 +35,12 @@ class DataBase:
             manufacturer text,
             datasheet text,
             seller text,
-            FOREIGN KEY (family) REFERENCES ReferencesList (reference)
             UNIQUE (partname, package, type)
         );
         """
 
         # Creating tables if needed
-        self.__db__.execute(create_table1)
-        self.__db__.execute(create_table2)
+        self.__db__.execute(create_table)
         self.__db__.commit()
 
         return
@@ -73,14 +65,23 @@ class DataBase:
         """
         Print all of tables
         """
-        ret = self.__db__.execute("SELECT * FROM ComponentsReferences")
-        print(ret.fetchall())
         ret = self.__db__.execute("SELECT * FROM Components")
         print(ret.fetchall())
 
         return
 
-    def AddComponentToStock(self, partname, Family, Package, Type, Value, Quantity):
+    def AddComponentToStock(
+        self,
+        partname,
+        Family,
+        Package,
+        Type,
+        Value,
+        Quantity,
+        Manufacturer="",
+        Datasheet="",
+        Seller="",
+    ):
         """
         This function add a component to the stock.
 
@@ -91,33 +92,25 @@ class DataBase:
             Type : A type of the components : Example : Capacitor or Timers
             Value : Reserved for pasive components. This is TEXT !! Example : '100nF'
             Quantity : The number of components in stock.
+            Manufacturer (optionnal) : The manufacturer of the IC
+            Datasheet (optionnal) : The datasheet page for the IC
+            Seller (optionnal) : The Seller of the IC
 
         Returns :
-            retval : True | False : The field has been added or not
+            retval (True | False) : The item has been added or not.
+            reason : The error that may be returned by the database.
         """
-
         retval = True
-
-        ret = self.__db__.execute(
-            f"SELECT * FROM ComponentsReferences WHERE reference = '{Family}'"
-        )
-        ret = ret.fetchall()
-
-        if len(ret) == 0:
-            self.__db__.execute(
-                f"INSERT INTO ComponentsReferences (reference) VALUES ('{Family}')"
-            )
-            self.__db__.commit()
+        reason = ""
 
         try:
             self.__db__.execute(
-                f"INSERT INTO Components (family, partname, package, type, value, quantity) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', {Quantity})"  # Add here the new fileds !
+                f"INSERT INTO Components (family, partname, package, type, value, quantity, manufacturer, datasheet, seller) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', {Quantity}, '{Manufacturer}', '{Datasheet}', '{Seller}')"  # Add here the new fileds !
             )
-
-        except Exception as e:
+        except sqlite3.IntegrityError as e:
             retval = False
+            reason = e
 
         finally:
             self.__db__.commit()
-
-        return retval
+            return retval, reason
