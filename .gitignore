@@ -3,3 +3,10 @@
 
 # Ignoring python cache files
 *.pyc*
+
+# Ignoring Data files :
+*.xlsx
+*.csv
+
+# Ignoring VirtualEnv files
+/venv/*
