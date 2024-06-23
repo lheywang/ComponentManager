@@ -3,7 +3,7 @@ This file define a class that is used as standard IO for the whole project
 """
 
 from rich.console import Console
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Prompt, Confirm, IntPrompt
 from rich.table import Table
 
 
@@ -51,6 +51,12 @@ class ConsolePrinter:
         This function input a standard string
         """
         return Prompt.ask(Message)
+    
+    def IntInput(self, Message):
+        """
+        Ask for an integer
+        """
+        return IntPrompt(Message)
 
     def log(self, Message, istyle:str = "blue"):
         self.__Console__.log(Message, style=istyle)
@@ -152,9 +158,16 @@ class ConsolePrinter:
         for Element in List:
             elements = []
             for Index in ElementOrder:
-                elements.append(str(Element[Index]))
+                if Index == 8: # Datasheet
+                    elements.append(f"[link={str(Element[Index])}]Datasheet[/link]")
+                elif Index == 9: # Seller
+                    elements.append(f"[link={str(Element[Index])}]Seller[/link]")
+                else:
+                    elements.append(str(Element[Index]))
 
             table.add_row(*elements)
 
         self.__Console__.print(table)
         return
+    
+

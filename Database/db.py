@@ -35,7 +35,7 @@ class DataBase:
             manufacturer text,
             datasheet text,
             seller text,
-            UNIQUE (partname, package, type)
+            UNIQUE (partname, package)
         );
         """
 
@@ -61,23 +61,14 @@ class DataBase:
 
         return
 
-    def PrintDB(self):
-        """
-        Print all of tables
-        """
-        ret = self.__db__.execute("SELECT * FROM Components")
-        print(ret.fetchall())
-
-        return
-
     def AddComponentToStock(
         self,
         partname,
-        Family,
-        Package,
-        Type,
-        Value,
         Quantity,
+        Package="",
+        Type="",
+        Value="",
+        Family="",
         Manufacturer="",
         Datasheet="",
         Seller="",
@@ -87,33 +78,35 @@ class DataBase:
 
         Arguments :
             PartName : The EXACT reference of a part : Example : KX603J105 or NE555PB
-            Family : The family of the part : Example : 100nF or NE555
-            Package : The Package for the stock : Example : 0603 or SOIC8
-            Type : A type of the components : Example : Capacitor or Timers
-            Value : Reserved for pasive components. This is TEXT !! Example : '100nF'
             Quantity : The number of components in stock.
+
+            Package (optionnal) : The Package for the stock : Example : 0603 or SOIC8
+            Type (optionnal): A type of the components : Example : Capacitor or Timers
+            Value (optionnal): Reserved for pasive components. This is TEXT !! Example : '100nF'
+            Family (optionnal): The family of the part : Example : 100nF or NE555
             Manufacturer (optionnal) : The manufacturer of the IC
             Datasheet (optionnal) : The datasheet page for the IC
             Seller (optionnal) : The Seller of the IC
 
         Returns :
             retval (True | False) : The item has been added or not.
-            reason : The error that may be returned by the database.
         """
         retval = True
-        reason = ""
 
         try:
             self.__db__.execute(
-                f"INSERT INTO Components (family, partname, package, type, value, quantity, manufacturer, datasheet, seller) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', {Quantity}, '{Manufacturer}', '{Datasheet}', '{Seller}')"  # Add here the new fileds !
+                f"INSERT INTO Components (family, partname, package, type, value, quantity, manufacturer, datasheet, seller) VALUES ('{Family}','{partname}', '{Package}', '{Type}', '{Value}', '{Quantity}', '{Manufacturer}', '{Datasheet}', '{Seller}')"  # Add here the new fileds !
             )
+        # Failed the UNIQUE constraint
         except sqlite3.IntegrityError as e:
+            ret = self.SeekOnDB(partname=partname, package=Package)
+            Row = ret[0][0]
+            self.UpdateQuantity(Row, Quantity)
             retval = False
-            reason = e
 
         finally:
             self.__db__.commit()
-            return retval, reason
+            return retval
 
     def SeekOnDB(self, **kwargs):
         """
@@ -146,3 +139,34 @@ class DataBase:
         ret = ret.fetchall()
 
         return ret
+
+    def UpdateQuantity(self, RowID, QuantityToAdd):
+        """
+        Update the Quantity in a row of the DB.
+
+        Arguments :
+            RowID : The Primary Key of the row. Returned by the SeekOnDB on pos 0.
+            QuantityToAdd : The Quantity to be added. May be a negative one !
+
+        Returns :
+            RetVal (int) : The new quantity of the item
+        """
+        ret = self.SeekOnDB(id=RowID)
+        OldQuantity = ret[0][6]
+
+        self.__db__.execute(
+            f"UPDATE Components SET quantity = '{int(OldQuantity) + int(QuantityToAdd)}' WHERE id = {RowID}"
+        )
+        self.__db__.commit()
+        return int(OldQuantity) + int(QuantityToAdd)
+
+    def DeleteFromDB(self, RowID):
+        """
+        Delete a row from the DB
+
+        Arguments :
+            RowID : The id of the row to be deleted.
+        """
+        self.__db__.execute(f"DELETE Components WHERE id = {RowID}")
+        self.__db__.commit()
+        return
