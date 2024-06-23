@@ -118,20 +118,27 @@ class DataBase:
     def SeekOnDB(self, **kwargs):
         """
         Return a list of the element that match the criteria passed.
+
+        Arguments :
+            **kwargs : Any column of the DB
+
+        Returns :
+            A list of tuples of the elements that match the request.
         """
-
-        condition = "WHERE "
-
+        condition = ""
         arg_number = len(kwargs)
-        actual_arg = 0
 
-        for col, values in kwargs.items():
-            condition = condition + f"""{col} = '{values}'"""
+        if arg_number > 0:
+            actual_arg = 0
+            condition = "WHERE "
 
-            if actual_arg < arg_number - 1:
-                condition = condition + " AND "
+            for col, values in kwargs.items():
+                condition = condition + f"""{col} = '{values}'"""
 
-            actual_arg += 1
+                if actual_arg < arg_number - 1:
+                    condition = condition + " AND "
+
+                actual_arg += 1
 
         command = f"""SELECT * FROM Components {condition}"""
 
