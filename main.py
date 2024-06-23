@@ -3,14 +3,16 @@ This is the entry point of the program.
 """
 
 from Database import DataBase
-
-import pandas as pd
+from Console import ConsolePrinter
+from FileInput import OpenFile
 
 
 def main():
-    print("Hello Worlds !")
-
+    Console = ConsolePrinter()
+    Console.log("Openning Database ...")
     DB = DataBase()
+
+    Console.log("Done !")
     print(DB.AddComponentToStock("NE555P", "NE555", "SOIC8", "Timers", "", 1000))
     DB.PrintDB()
 
@@ -18,8 +20,16 @@ def main():
 
     DB.SaveAndClose()
 
+    ret = Console.Ask(
+        "Choose what action to do : ",
+        [
+            "Import from a CSV file",
+            "Import from Excel file",
+            "Type references by your own",
+        ],
+    )
+
 
 if __name__ == "__main__":
-    data = pd.read_csv("PCBA_3128D2_4.csv")
-    print(data)
+    print(OpenFile("PCBA_3128D2_4.csv"))
     main()
