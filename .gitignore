@@ -10,3 +10,6 @@
 
 # Ignoring VirtualEnv files
 /venv/*
+
+# Personnal files :
+component.txt
